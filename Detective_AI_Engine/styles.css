@@ -1,0 +1,107 @@
+
+/* Detective Noir Theme - Light Mode Optimized */
+@import url('https://fonts.googleapis.com/css2?family=Special+Elite&family=Playfair+Display:wght@700&family=Inter:wght@400;700&display=swap');
+
+/* Main Container */
+.stApp {
+    background-color: #f8f9fa;
+    color: #212529;
+}
+
+.main-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 3rem;
+    color: #1a1a1a;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 4px;
+    margin-bottom: 2rem;
+    border-bottom: 2px solid #333;
+    padding-bottom: 1rem;
+}
+
+/* Case Background Card */
+.case-card {
+    background: #ffffff;
+    border: 1px solid #dee2e6;
+    border-left: 6px solid #495057;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.typewriter-text {
+    font-family: 'Inter', 'Noto Sans TC', sans-serif;
+    line-height: 1.8;
+    color: #2c3e50;
+    font-size: 1.15rem;
+    letter-spacing: 0.5px;
+}
+
+/* Victim Banner */
+.victim-banner {
+    background: #1a0000;
+    color: #ffffff;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+    border-left: 8px solid #ff4b4b;
+}
+
+.victim-banner h3, .victim-banner h4 {
+    color: #ff4b4b !important;
+    margin-top: 0;
+}
+
+/* Suspect Cards */
+.suspect-card {
+    background: #ffffff;
+    border: 1px solid #ced4da;
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+
+.suspect-header {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.8rem;
+    color: #c92a2a;
+    margin-bottom: 0.5rem;
+}
+
+.tag {
+    display: inline-block;
+    padding: 0.2rem 0.6rem;
+    background: #e9ecef;
+    border: 1px solid #adb5bd;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    margin-right: 0.5rem;
+    color: #495057;
+    font-weight: 600;
+}
+
+/* Interaction Count Metric */
+[data-testid="stMetricValue"] {
+    color: #c92a2a !important;
+}
+
+/* Dialogue Buttons Styling */
+div.stButton > button:first-child {
+    background-color: #ff4b4b;
+    color: white;
+    font-weight: 600;
+    border-radius: 8px;
+    border: none;
+    padding: 0.6rem 1rem;
+    width: 100%;
+    margin-top: 0.5rem;
+}
+
+div.stButton > button:first-child:hover {
+    background-color: #e03131;
+    border-color: #c92a2a;
+}

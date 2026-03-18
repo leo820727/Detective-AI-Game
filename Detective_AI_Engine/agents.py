@@ -147,7 +147,15 @@ class DetectiveEngine:
             characters: List[Character]
             
         data = self._call_ai(prompt, CharacterList)
-        return [Character(**c) for c in data['characters']]
+        characters = [Character(**c) for c in data['characters']]
+        
+        # 強制修正 killer_index 以確保與最終生成的陣列索引完全吻合
+        for i, char in enumerate(characters):
+            if char.is_killer:
+                mystery.killer_index = i
+                break
+                
+        return characters
 
     def get_dynamic_response(self, character: Character, question: str, mystery: MysteryLogic):
         """實時生成嫌疑人的回應與後續追問，必須嚴格遵守案發真相"""
@@ -155,18 +163,18 @@ class DetectiveEngine:
         你的身分：{character.name} ({character.role})
         性格：{character.personality}
         關係：{character.relation_to_victim}
-        你是兇手嗎：{"是，妳必須隱瞞真相，但在對話中可以留下與關鍵線索相關的極微小破綻" if character.is_killer else "不是"}
+        你是真兇嗎：{"是，你是殺死死者的真凶！但你必須隱瞞真相，試著為自己開脫，只能在對話中無意間留下極微小的破綻。" if character.is_killer else "不是！你是一個無辜者，但你有著自己的秘密。"}
         
-        【案件真相全貌】：{mystery.truth_reveal_story}
+        【上帝視角：案件真相全貌】（僅供故事脈絡參考）：{mystery.truth_reveal_story}
         【核心物證】：{mystery.key_clue}
         
         玩家問你："{question}"
         
         請以角色的口吻給出回應，並根據這個回應提供 2 個合適的【後續追問選項】。
-        回應規則：
-        1. 必須嚴格符合上面的【案件真相全貌】，不可編造與真相衝突的事實。
-        2. 如果妳是兇手，請表現出防禦性，並隱晦地閃躲。
-        3. 如果妳不是兇手，請根據妳在真相故事中的角色位置據實（或根據性格有所隱瞞地）回答。"""
+        回應規則（極度重要🚨）：
+        1. {"你必須隱瞞自己是兇手的事實，可以假裝不知情或把嫌疑推給別人。" if character.is_killer else "做為無辜者，你【絕對不知道】真正的兇手是誰，也不清楚他們的殺人計畫。你只能回答與你相關的事情！即使你知道真相故事的全貌，你也必須扮演一個不知情的局內人。絕不可直接說出誰是兇手！"}
+        2. 你的回應必須符合角色的知識範圍，不可編造不合理的神奇設定。
+        3. 回應長度控制在 50~100 字之間，展現戲劇張力。"""
         
         class DynamicInteraction(BaseModel):
             response: str

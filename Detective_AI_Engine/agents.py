@@ -53,7 +53,7 @@ class DetectiveEngine:
     def set_api_key(self, api_key: str):
         self.client = Groq(api_key=api_key)
 
-    def _call_ai(self, prompt: str, schema: BaseModel):
+    def _call_ai(self, prompt: str, schema: Type[BaseModel], temperature: float = 0.7) -> dict:
         if not self.client:
             raise ValueError("尚未設定 Groq API 金鑰。")
 
@@ -68,7 +68,7 @@ class DetectiveEngine:
                     {"role": "user", "content": prompt}
                 ],
                 model=self.model_name,
-                temperature=0.7,
+                temperature=temperature,
                 stream=False,
                 response_format={"type": "json_object"}
             )
@@ -116,7 +116,7 @@ class DetectiveEngine:
         1. 案件基本資訊。
         2. **案件開頭故事 (full_story)**：請撰寫一段約 {word_count} 字的故事。
            - 必須描述現場，且停格在偵查開始前。
-           - 必須帶入 {count} 名嫌疑人的異常行為。
+           - 必須帶入 {count} 名嫌疑人的異常行為。每位嫌疑人都必須有完全不同的、與真凶無關的可疑舉動或不可告人的秘密。請盡情發揮創意發想各種千奇百怪的行為，設計各種不同的煙霧彈（Red Herring），避免所有人都只是單純的目擊者。
            - 必須在故事內容中，明確描述調查人員在現場發現了一個特定的【核心物證 (key_clue)】。
            - **🚨 嚴格禁令**：故事不可提及抓到兇手或破獲結局。
            - **⏳ 時代限制**：請完全遵照你設定的「主題與時代」來描寫，確保出現的科技、文化或物品符合該時代背景，不可出現穿越時空的違和感（例如在古代出現手機，或在科幻出現魔法）。
@@ -124,7 +124,7 @@ class DetectiveEngine:
            - **🚨 劇情要求**：請發揮創意，設計一個情節曲折、動機深刻的真相。可以包含任何形式的犯罪（金錢、復仇、愛恨、意外或心理因素），但請確保案情具有一定的複雜度與推理樂趣。
         4. **兇手編號 (killer_index)**：請務必輸出一個「整數」，範圍是 0 到 {count-1}。
         所有內容請使用繁體中文。"""
-        data = self._call_ai(prompt, MysteryLogic)
+        data = self._call_ai(prompt, MysteryLogic, temperature=0.85)
         return MysteryLogic(**data)
 
     def generate_characters(self, background: Background, mystery: MysteryLogic, count=4):
@@ -141,7 +141,7 @@ class DetectiveEngine:
         1. 你輸出的第 {mystery.killer_index} 個角色，其名字與身分必須對應到【案件真相】裡那位真正的殺手！而且 `is_killer` 必須設為 true。
         2. 其他 {count-1} 個角色，必須對應到真相故事中提到的其他角色（或者是符合背景的無辜嫌疑人），他們的 `is_killer` 必須設為 false。
         3. 【🚨 角色身分 (role) 禁令】：請在 `role` 欄位填寫該角色的「公開職業」或「表面身分」。絕對不可在 `role` 欄位填入暗示真凶的字眼。
-        4. 每位角色的動機和性格必須與他們在【真相】裡的行為一致，設定要有層次感。
+        4. 每位角色的動機和性格必須與他們在【真相】裡的行為一致，設定要有層次感。**🚨 煙霧彈要求**：即使是無辜的角色，也必須設計出屬於他們自己強烈的動機與秘密。讓他們各自因為要掩護自己的事情而顯得心虛可疑。請發展各種不同面向的創意，絕不可讓他們只是單純的目擊者。
         5. **嫌疑事由 (suspicion_reason)**：根據故事與真相，解釋為什麼警方會懷疑他。
         6. **初始詢問 (initial_questions)**：提供 2 個偵探對他進行第一次偵訊的問題。
            - **注意**：問題內容請盡量緊扣【故事背景】與【關鍵證據】中他們做出的異常行為或疑點來發問。請發揮推理邏輯的創意，但切勿提出與故事毫不相干的幻覺問題。
@@ -151,7 +151,7 @@ class DetectiveEngine:
         class CharacterList(BaseModel):
             characters: List[Character]
             
-        data = self._call_ai(prompt, CharacterList)
+        data = self._call_ai(prompt, CharacterList, temperature=0.8)
         characters = [Character(**c) for c in data['characters']]
         
         # 強制修正 killer_index 以確保與最終生成的陣列索引完全吻合
@@ -177,7 +177,7 @@ class DetectiveEngine:
         
         請以角色的口吻給出回應，並根據這個回應提供 2 個合適的【後續追問選項】。
         回應規則（極度重要🚨）：
-        1. {"你必須掩飾自己犯案的真相，盡量為自己開脫、撒謊或把嫌疑推給別人。" if character.is_killer else "做為被捲入命案的無辜者，你【絕對不知道】真正的兇手是誰，或者他們的殺人計畫。但是，你必須盡可能分享你在命案前後「看到的人事物」、「聽到的八卦」或是「你自己的推論」。請生動地描述你擁有的線索，絕對不要一直回答「不知道」或「不清楚」！"}
+        1. {"你必須掩飾自己犯案的真相，盡量為自己開脫、撒謊或把嫌疑推給別人。" if character.is_killer else "做為無辜者，你【絕對不知道】真正的兇手是誰。但在命案現場，為了掩蓋你「自己的秘密或爛事」，你可以提供八卦、甚至有意無意地將嫌疑推給『其他無辜的角色』。千萬不要剛好每個人都去指控真正的兇手，請製造出彼此猜忌的混亂局面！請生動地描述你看到的物品和線索，但不要一直回答不知道。"}
         2. 你的回應必須符合角色的知識範圍。
         3. 回應長度控制在 50~100 字之間，展現戲劇張力。
         4. **後續追問選項**：這 2 個選項必須與剛才的「回應內容」或「已知物證」產生合理的邏輯連貫。請發揮創意引導偵探，但不要隨意捏造完全無關的荒謬線索。"""

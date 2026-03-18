@@ -99,9 +99,16 @@ st.markdown('<h1 class="main-title">THE GLASS CASE 琉璃案件夾</h1>', unsafe
 
 with st.sidebar:
     st.title("⚙️ 引擎設定")
-    api_key = st.text_input("Groq API 金鑰", value=os.getenv("GROQ_API_KEY", ""), type="password")
-    if api_key:
-        os.environ["GROQ_API_KEY"] = api_key
+    # 不要將 Server 端的 Key 變成預設值顯示在畫面上，這會讓所有人都看到
+    api_key_input = st.text_input("Groq API 金鑰", value="", type="password", help="請輸入你在 Groq 官網申請的 API 金鑰", autocomplete="new-password")
+    
+    # 如果使用者有填寫，就覆寫系統現有金鑰；如果沒填寫，就默默嘗試讀取雲端預設的 Secrets
+    if api_key_input:
+        os.environ["GROQ_API_KEY"] = api_key_input
+        api_key_for_engine = api_key_input
+    else:
+        api_key_for_engine = os.getenv("GROQ_API_KEY", "")
+        
     selected_model = st.selectbox("LLM 模型", [
         "llama-3.3-70b-versatile"
     ])

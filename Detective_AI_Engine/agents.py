@@ -125,17 +125,22 @@ class DetectiveEngine:
         return MysteryLogic(**data)
 
     def generate_characters(self, background: Background, mystery: MysteryLogic, count=4):
-        prompt = f"""扮演角色代理人。為此案件【嚴格創建恰好 {count} 名】嫌疑人。
+        prompt = f"""扮演角色代理人。為此案件【嚴格創建恰好 {count} 名】嫌疑人，他們的名字和設定必須與【案件真相】完全相符。
+        
         故事背景：{mystery.full_story}
         線索與死因：{mystery.cause_of_death} | 關鍵證據：{mystery.key_clue}
         
-        請根據場景與故事中的伏筆，自由發想每位嫌疑人的身分與背後的故事。
-        為每位嫌疑人提供：
-        1. 獨特的身分與真實性格。
-        2. **嫌疑事由 (suspicion_reason)**：根據【故事背景】中提到的異常舉動，總結其被列為嫌疑人的核心理由。
-        3. **初始詢問 (initial_questions)**：提供 2 個針對該人物在故事中行為的偵查問題。
+        【🚨 最重要的案件真相】：{mystery.truth_reveal_story}
         
-        人物動機應具備戲劇張力且邏輯自洽，請自由發想各種超乎預期的衝突與祕密。
+        【🚨 真兇索引編號】：第 {mystery.killer_index} 位嫌疑人（從 0 開始算起）。
+        
+        請你根據【案件真相】中提到的人物，來建立這 {count} 個角色的詳細資料：
+        1. 你輸出的第 {mystery.killer_index} 個角色，其名字與身分必須對應到【案件真相】裡那位真正的殺手！而且 `is_killer` 必須設為 true。
+        2. 其他 {count-1} 個角色，必須對應到真相故事中提到的其他角色（或者是符合背景的無辜嫌疑人），他們的 `is_killer` 必須設為 false。
+        3. 每位角色的動機和性格必須與他們在【真相】裡的行為一致。
+        4. **嫌疑事由 (suspicion_reason)**：根據故事與真相，解釋為什麼警方會懷疑他。
+        5. **初始詢問 (initial_questions)**：提供 2 個偵探對他進行第一次偵訊的問題。
+        
         所有內容請使用繁體中文。"""
         
         class CharacterList(BaseModel):

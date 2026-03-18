@@ -11,11 +11,12 @@ load_dotenv()
 # --- Page Config & Styling ---
 st.set_page_config(page_title="琉璃案件夾 | AI 偵探引擎", page_icon="🕵️‍♂️", layout="wide")
 
-def load_css(file_name):
-    with open(file_name) as f:
+def load_css():
+    css_path = os.path.join(os.path.dirname(__file__), "styles.css")
+    with open(css_path, encoding="utf-8") as f:
         st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
 
-load_css("styles.css")
+load_css()
 
 # --- Session State Initialization ---
 if "background" not in st.session_state:

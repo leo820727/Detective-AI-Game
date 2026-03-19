@@ -45,8 +45,7 @@ class Character(BaseModel):
     initial_questions: List[str] # 針對 suspicion_reason 設計的初始詢問
 
 class DetectiveEngine:
-    def __init__(self, model_name="llama-3.3-70b-versatile"):
-        api_key = os.getenv("GROQ_API_KEY")
+    def __init__(self, model_name="llama-3.3-70b-versatile", api_key=None):
         self.client = Groq(api_key=api_key) if api_key else None
         self.model_name = model_name
 

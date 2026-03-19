@@ -43,9 +43,7 @@ if "chosen_killer" not in st.session_state:
 # --- Game Logic Functions ---
 def generate_new_game():
     st.session_state.generating = True
-    engine = DetectiveEngine(model_name=selected_model)
-    if api_key_for_engine:
-        engine.set_api_key(api_key_for_engine)
+    engine = DetectiveEngine(model_name=selected_model, api_key=api_key_for_engine)
         
     with st.status(f"🔍 正在佈置 {selected_theme} 主題...", expanded=True) as status:
         st.write("🌍 世界觀代理人正在構思場景...")
@@ -76,9 +74,7 @@ def generate_new_game():
 
 def handle_dynamic_dialogue(char_name, question):
     if st.session_state.interactions_left > 0:
-        engine = DetectiveEngine(model_name=selected_model)
-        if api_key_for_engine:
-            engine.set_api_key(api_key_for_engine)
+        engine = DetectiveEngine(model_name=selected_model, api_key=api_key_for_engine)
             
         char = next(c for c in st.session_state.characters if c.name == char_name)
         
@@ -107,13 +103,8 @@ with st.sidebar:
     # 不要將 Server 端的 Key 變成預設值顯示在畫面上，這會讓所有人都看到
     api_key_input = st.text_input("Groq API 金鑰", value="", type="password", help="請輸入你在 Groq 官網申請的 API 金鑰", autocomplete="new-password")
     
-    # 如果使用者有填寫，就使用輸入的金鑰；如果沒填寫，就嘗試讀取系統環境變數 (如 .env 或雲端 Secrets)
-    if api_key_input:
-        # ⚠️ 嚴重警告：絕對不可以使用 os.environ["GROQ_API_KEY"] = api_key_input
-        # 因為 Streamlit 屬於單一程序共享狀態，更改 os.environ 會導致把你的金鑰直接洩漏給「同時連線的其他陌生玩家」！
-        api_key_for_engine = api_key_input
-    else:
-        api_key_for_engine = os.getenv("GROQ_API_KEY", "")
+    # 強制只使用使用者在畫面上輸入的金鑰，完全不讀取伺服器環境變數！
+    api_key_for_engine = api_key_input.strip()
         
     selected_model = st.selectbox("LLM 模型", [
         "llama-3.3-70b-versatile"

@@ -44,8 +44,10 @@ if "chosen_killer" not in st.session_state:
 def generate_new_game():
     st.session_state.generating = True
     engine = DetectiveEngine(model_name=selected_model)
-    
-    with st.status("🔍 正在招募偵探代理人...", expanded=True) as status:
+    if api_key_for_engine:
+        engine.set_api_key(api_key_for_engine)
+        
+    with st.status(f"🔍 正在佈置 {selected_theme} 主題...", expanded=True) as status:
         st.write("🌍 世界觀代理人正在構思場景...")
         theme_input = None if selected_theme == "隨機生成 ✨" else selected_theme
         bg = engine.generate_background(theme=theme_input)
@@ -75,6 +77,9 @@ def generate_new_game():
 def handle_dynamic_dialogue(char_name, question):
     if st.session_state.interactions_left > 0:
         engine = DetectiveEngine(model_name=selected_model)
+        if api_key_for_engine:
+            engine.set_api_key(api_key_for_engine)
+            
         char = next(c for c in st.session_state.characters if c.name == char_name)
         
         with st.spinner(f"正在詢問 {char_name}..."):
@@ -102,9 +107,10 @@ with st.sidebar:
     # 不要將 Server 端的 Key 變成預設值顯示在畫面上，這會讓所有人都看到
     api_key_input = st.text_input("Groq API 金鑰", value="", type="password", help="請輸入你在 Groq 官網申請的 API 金鑰", autocomplete="new-password")
     
-    # 如果使用者有填寫，就覆寫系統現有金鑰；如果沒填寫，就默默嘗試讀取雲端預設的 Secrets
+    # 如果使用者有填寫，就使用輸入的金鑰；如果沒填寫，就嘗試讀取系統環境變數 (如 .env 或雲端 Secrets)
     if api_key_input:
-        os.environ["GROQ_API_KEY"] = api_key_input
+        # ⚠️ 嚴重警告：絕對不可以使用 os.environ["GROQ_API_KEY"] = api_key_input
+        # 因為 Streamlit 屬於單一程序共享狀態，更改 os.environ 會導致把你的金鑰直接洩漏給「同時連線的其他陌生玩家」！
         api_key_for_engine = api_key_input
     else:
         api_key_for_engine = os.getenv("GROQ_API_KEY", "")
@@ -121,8 +127,10 @@ with st.sidebar:
 if st.session_state.game_state == "START":
     st.markdown("""<div style="text-align: center; margin: 4rem 0;"><h2>準備好解開謎題了嗎？</h2></div>""", unsafe_allow_html=True)
     if st.button("🧧 開始新案件", use_container_width=True):
-        if not os.getenv("GROQ_API_KEY"): st.error("請輸入金鑰")
-        else: generate_new_game()
+        if not api_key_for_engine: 
+            st.error("請在左側面板輸入你的 Groq API 金鑰")
+        else: 
+            generate_new_game()
 
 # 2. Investigation Phase
 elif st.session_state.game_state in ["INVESTIGATION", "JUDGMENT"]:
